@@ -9,14 +9,19 @@
             <max_step_size>0.001</max_step_size>
             <real_time_factor>1.0</real_time_factor>
         </physics>
+        <!-- everything in gazebo is a plugin, even the scene, stats, controls, entity tree... (which are included by default even if not
+        added) and they're all customizable -->
+        <!-- makes objects move, fall, and collide -->
         <plugin
             filename="gz-sim-physics-system"
             name="gz::sim::systems::Physics">
         </plugin>
+        <!-- move/modify objects in the simulation at runtime via GUI or commands -->
         <plugin
             filename="gz-sim-user-commands-system"
             name="gz::sim::systems::UserCommands">
         </plugin>
+        <!-- streams the scene state to the GUI and external tools so they can visualize it -->
         <plugin
             filename="gz-sim-scene-broadcaster-system"
             name="gz::sim::systems::SceneBroadcaster">
@@ -220,6 +225,7 @@
                     </geometry>
                 </collision>
             </link>
+
             <!-- connect links together using joints, revolute (like revolution, circular) allows rotation around only one axis -->
             <joint name='left_wheel_joint' type='revolute'>
                 <pose relative_to='left_wheel' />
@@ -252,7 +258,9 @@
                 <parent>chassis</parent>
                 <child>caster</child>
             </joint>
-            <!-- premade gazebo code to pilot a car using the joints and values up there -->
+
+            <!-- premade gazebo code to pilot a car using the joints and values up there, we put it within model for encapsulation as it's
+            only related to it -->
             <plugin
                 filename="gz-sim-diff-drive-system"
                 name="gz::sim::systems::DiffDrive">
@@ -265,6 +273,7 @@
                 <topic>cmd_vel</topic> <!-- input <topic>, used in commands like 'gz topic -t "/cmd_vel" -m gz.msgs.Twist -p "linear: {x:
                 0.5}, angular: {z: 0.05}" ' (after starting the sim) -->
             </plugin>
+
             <!-- TriggeredPublisher publishes a user specified message on an output topic in response to an input message that matches user
             specified criteria -->
             <plugin filename="gz-sim-triggered-publisher-system"
@@ -305,6 +314,18 @@
                     linear: {x: -0.5}, angular: {z: 0.0}
                 </output>
             </plugin>
+
+            <!-- outputs the orientation of our robot in quaternions, the angular_velocity in the three axes (X, Y, Z), and the
+            linear_acceleration in the three axes, adds imu sensor type to retrieve them from topic (gz topic -e -t /imu) -->
+            <plugin filename="gz-sim-imu-system"
+                name="gz::sim::systems::Imu">
+            </plugin>
+            <sensor name="imu_sensor" type="imu">
+                <always_on>1</always_on>
+                <update_rate>1</update_rate>
+                <visualize>true</visualize>
+                <topic>imu</topic>
+            </sensor>
         </model>
     </world>
 </sdf>
