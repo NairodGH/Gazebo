@@ -1,4 +1,5 @@
 <?xml version="1.0"?>
+<!-- https://gazebosim.org/docs/latest/tutorials/ -->
 <sdf version="1.10">
     <world name="car_world">
         <!-- define each simulation step to be 1 millisecond (smaller=more accurate but more
@@ -251,6 +252,59 @@
                 <parent>chassis</parent>
                 <child>caster</child>
             </joint>
+            <!-- premade gazebo code to pilot a car using the joints and values up there -->
+            <plugin
+                filename="gz-sim-diff-drive-system"
+                name="gz::sim::systems::DiffDrive">
+                <left_joint>left_wheel_joint</left_joint>
+                <right_joint>right_wheel_joint</right_joint>
+                <wheel_separation>1.2</wheel_separation>
+                <wheel_radius>0.4</wheel_radius>
+                <odom_publish_frequency>1</odom_publish_frequency> <!-- frequency at which the odometry is published at
+                /model/vehicle_blue/odometry -->
+                <topic>cmd_vel</topic> <!-- input <topic>, used in commands like 'gz topic -t "/cmd_vel" -m gz.msgs.Twist -p "linear: {x:
+                0.5}, angular: {z: 0.05}" ' (after starting the sim) -->
+            </plugin>
+            <!-- TriggeredPublisher publishes a user specified message on an output topic in response to an input message that matches user
+            specified criteria -->
+            <plugin filename="gz-sim-triggered-publisher-system"
+                name="gz::sim::systems::TriggeredPublisher">
+                <input type="gz.msgs.Int32" topic="/keyboard/keypress">
+                    <match field="data">16777234</match> <!-- left arrow key, as Int32 code, detected by /keyboard/keypress topic -->
+                </input>
+                <output type="gz.msgs.Twist" topic="/cmd_vel"> linear: {x: 0.0}, angular: {z: 0.5} <!-- send left movement to our /cmd_vel
+                    set up above -->
+                </output>
+            </plugin>
+            <!-- xml has no loops or convenient ways to handle such repetitions, unlike doing our own plugins in cpp, don't forget to
+            activate Key Publisher plugin on the interface (top right) and start 'gz topic -e -t /keyboard/keypress' in another terminal  -->
+            <plugin filename="gz-sim-triggered-publisher-system"
+                name="gz::sim::systems::TriggeredPublisher">
+                <input type="gz.msgs.Int32" topic="/keyboard/keypress">
+                    <match field="data">16777235</match>
+                </input>
+                <output type="gz.msgs.Twist" topic="/cmd_vel">
+                    linear: {x: 0.5}, angular: {z: 0.0}
+                </output>
+            </plugin>
+            <plugin filename="gz-sim-triggered-publisher-system"
+                name="gz::sim::systems::TriggeredPublisher">
+                <input type="gz.msgs.Int32" topic="/keyboard/keypress">
+                    <match field="data">16777236</match>
+                </input>
+                <output type="gz.msgs.Twist" topic="/cmd_vel">
+                    linear: {x: 0.0}, angular: {z: -0.5}
+                </output>
+            </plugin>
+            <plugin filename="gz-sim-triggered-publisher-system"
+                name="gz::sim::systems::TriggeredPublisher">
+                <input type="gz.msgs.Int32" topic="/keyboard/keypress">
+                    <match field="data">16777237</match>
+                </input>
+                <output type="gz.msgs.Twist" topic="/cmd_vel">
+                    linear: {x: -0.5}, angular: {z: 0.0}
+                </output>
+            </plugin>
         </model>
     </world>
 </sdf>
