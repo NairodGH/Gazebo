@@ -26,6 +26,11 @@
             filename="gz-sim-scene-broadcaster-system"
             name="gz::sim::systems::SceneBroadcaster">
         </plugin>
+        <!-- outputs the orientation of our robot in quaternions, the angular_velocity in the three axes (X, Y, Z), and the
+            linear_acceleration in the three axes, adds imu sensor type to retrieve them from topic (gz topic -e -t /imu) -->
+        <plugin filename="gz-sim-imu-system"
+            name="gz::sim::systems::Imu">
+        </plugin>
         <!-- sun in the sky casting a fading light downwards which creates shadows -->
         <light type="directional" name="sun">
             <cast_shadows>true</cast_shadows>
@@ -113,6 +118,13 @@
                         </box>
                     </geometry>
                 </collision>
+                <!-- produce acceleration/gyroscope data -->
+                <sensor name="imu_sensor" type="imu">
+                    <always_on>1</always_on>
+                    <update_rate>1</update_rate>
+                    <visualize>true</visualize>
+                    <topic>imu</topic>
+                </sensor>
             </link>
             <link name='left_wheel'>
                 <!-- position the cylinder at the back of the chassis, rotated 90° (in radians) to look like a wheel -->
@@ -314,18 +326,60 @@
                     linear: {x: -0.5}, angular: {z: 0.0}
                 </output>
             </plugin>
-
-            <!-- outputs the orientation of our robot in quaternions, the angular_velocity in the three axes (X, Y, Z), and the
-            linear_acceleration in the three axes, adds imu sensor type to retrieve them from topic (gz topic -e -t /imu) -->
-            <plugin filename="gz-sim-imu-system"
-                name="gz::sim::systems::Imu">
+            <!-- stop for collision (later) -->
+            <plugin filename="gz-sim-triggered-publisher-system"
+                name="gz::sim::systems::TriggeredPublisher">
+                <input type="gz.msgs.Boolean" topic="/wall/touched">
+                    <match>data: true</match>
+                </input>
+                <output type="gz.msgs.Twist" topic="/cmd_vel">
+                    linear: {x: 0.0}, angular: {z: 0.0}
+                </output>
             </plugin>
-            <sensor name="imu_sensor" type="imu">
-                <always_on>1</always_on>
-                <update_rate>1</update_rate>
-                <visualize>true</visualize>
-                <topic>imu</topic>
-            </sensor>
+        </model>
+
+        <!-- obstacle wall -->
+        <model name='wall'>
+            <static>true</static>
+            <pose>5 0 0 0 0 0</pose> <!-- relative to world -->
+            <link name='box'>
+                <visual name='visual'>
+                    <geometry>
+                        <box>
+                            <size>0.5 10.0 2.0</size>
+                        </box>
+                    </geometry>
+                    <material>
+                        <ambient>0.0 0.0 1.0 1</ambient>
+                        <diffuse>0.0 0.0 1.0 1</diffuse>
+                        <specular>0.0 0.0 1.0 1</specular>
+                    </material>
+                </visual>
+                <collision name='collision'>
+                    <geometry>
+                        <box>
+                            <size>0.5 10.0 2.0</size>
+                        </box>
+                    </geometry>
+                </collision>
+                <sensor name='sensor_contact' type='contact'>
+                    <contact>
+                        <collision>collision</collision>
+                    </contact>
+                </sensor>
+            </link>
+            <!-- enables contact/collision detection sensing on that specific link -->
+            <plugin filename="gz-sim-contact-system"
+                name="gz::sim::systems::Contact">
+            </plugin>
+            <!-- watches whether vehicle_blue is touching the wall -> publishes a boolean to a topic under the wall namespace -->
+            <plugin filename="gz-sim-touchplugin-system"
+                name="gz::sim::systems::TouchPlugin">
+                <target>vehicle_blue</target>
+                <namespace>wall</namespace>
+                <time>0.001</time> <!-- minimum continuous contact duration in seconds before the TouchPlugin fires and publishes true -->
+                <enabled>true</enabled>
+            </plugin>
         </model>
     </world>
 </sdf>
