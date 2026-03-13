@@ -341,13 +341,15 @@
                     linear: {x: 0.0}, angular: {z: 0.0}
                 </output>
             </plugin>
-            
+
             <frame name="lidar_frame" attached_to="chassis">
                 <pose>0.8 0 0.5 0 0 0</pose>
             </frame>
             <link name="lidar_link">
                 <pose relative_to="lidar_frame" />
-                <!-- lidar from sensor plugin, accelerated on gpu -->
+                <!-- lidar from sensor plugin, accelerated on gpu, detects anything with a <collision> by default, unlike with
+                TriggeredPublisher where sdf handles simple hardcoded boolean "did it touch wall responses", lidar requires
+                reading/computing/deciding dynamically so it needs a C++ node -->
                 <sensor name="gpu_lidar" type="gpu_lidar">
                     <pose>0 0 0 0 0 0</pose>
                     <topic>lidar</topic>
@@ -369,7 +371,8 @@
                             </vertical>
                         </scan>
                         <range>
-                            <!-- detects between 8cm and 10m, distance measurements are quantized to 1cm steps -->
+                            <!-- detects between 8cm (since it's inside the vehicle, don't detect itself) and 10m, distance measurements are
+                            quantized to 1cm steps -->
                             <min>0.08</min>
                             <max>10.0</max>
                             <resolution>0.01</resolution>
@@ -428,5 +431,63 @@
                 <enabled>true</enabled>
             </plugin>
         </model>
+
+        <!-- actor = animated model, skin is the skeleton (scale 1 for base size), animation is how it moves (interpolate_x makes it more
+        realistic/smooth), script is the trajectory (type must be the same as animation's name) it'll take at given waypoints (starting
+        automatically and looping with no delay), tension controls how closely the trajectory will stick to them (0 = catmull-rom curve, may
+        overshoot/1 = sticks to the waypoints, rough/inbetween = realistic but here it's a square walk so not noticeable), fuel is gazebo's assets hosting -->
+        <actor name="actor_walking">
+            <skin>
+                <filename>https://fuel.gazebosim.org/1.0/Mingfei/models/actor/tip/files/meshes/walk.dae</filename>
+                <scale>1.0</scale>
+            </skin>
+            <animation name="walk">
+                <filename>https://fuel.gazebosim.org/1.0/Mingfei/models/actor/tip/files/meshes/walk.dae</filename>
+                <interpolate_x>true</interpolate_x>
+            </animation>
+            <script>
+                <loop>true</loop>
+                <delay_start>0.000000</delay_start>
+                <auto_start>true</auto_start>
+                <trajectory id="0" type="walk" tension="0.5">
+                    <waypoint>
+                        <time>0</time>
+                        <pose>0 0 1.0 0 0 0</pose>
+                    </waypoint>
+                    <waypoint>
+                        <time>2</time>
+                        <pose>2.0 0 1.0 0 0 0</pose>
+                    </waypoint>
+                    <waypoint>
+                        <time>2.5</time>
+                        <pose>2 0 1.0 0 0 1.57</pose>
+                    </waypoint>
+                    <waypoint>
+                        <time>4</time>
+                        <pose>2 2 1.0 0 0 1.57</pose>
+                    </waypoint>
+                    <waypoint>
+                        <time>4.5</time>
+                        <pose>2 2 1.0 0 0 3.142</pose>
+                    </waypoint>
+                    <waypoint>
+                        <time>6</time>
+                        <pose>0 2 1 0 0 3.142</pose>
+                    </waypoint>
+                    <waypoint>
+                        <time>6.5</time>
+                        <pose>0 2 1 0 0 -1.57</pose>
+                    </waypoint>
+                    <waypoint>
+                        <time>8</time>
+                        <pose>0 0 1.0 0 0 -1.57</pose>
+                    </waypoint>
+                    <waypoint>
+                        <time>8.5</time>
+                        <pose>0 0 1.0 0 0 0</pose>
+                    </waypoint>
+                </trajectory>
+            </script>
+        </actor>
     </world>
 </sdf>
