@@ -1,0 +1,91 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "cmake build gz",
+            "type": "shell",
+            "command": "cd ~/src/Gazebo/src/avoid_wall && mkdir -p build && cd build && cmake .. && make -j$(nproc)",
+            "group": "build",
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared",
+                "focus": true
+            },
+            "problemMatcher": [
+                "$gcc"
+            ]
+        },
+        {
+            "label": "run gz node",
+            "type": "shell",
+            "command": "sleep 3 && find ~/src/Gazebo -name lidar_node_gz | head -1 | xargs",
+            "group": "test",
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared",
+                "focus": true
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "colcon build",
+            "type": "shell",
+            "command": "source /opt/ros/jazzy/setup.bash && cd ~/src/Gazebo && colcon build --packages-select avoid_wall",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared",
+                "focus": true
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "ros2 launch",
+            "type": "shell",
+            "command": "source /opt/ros/jazzy/setup.bash && source ~/src/Gazebo/install/avoid_wall/share/avoid_wall/local_setup.bash && ros2 launch avoid_wall my_launch.py",
+            "group": "test",
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared",
+                "focus": true
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "build and launch (ros2)",
+            "dependsOrder": "sequence",
+            "dependsOn": [
+                "colcon build",
+                "ros2 launch"
+            ],
+            "group": "test",
+            "problemMatcher": []
+        },
+        {
+            "label": "build and launch (gz)",
+            "dependsOrder": "sequence",
+            "dependsOn": [
+                "cmake build gz",
+                "launch gz sim",
+                "run gz node"
+            ],
+            "group": "test",
+            "problemMatcher": []
+        },
+        {
+            "label": "launch gz sim",
+            "type": "shell",
+            "command": "gz sim ~/src/Gazebo/src/avoid_wall/worlds/building_robot.sdf",
+            "group": "test",
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared",
+                "focus": false
+            },
+            "problemMatcher": []
+        },
+    ]
+}
