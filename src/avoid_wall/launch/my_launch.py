@@ -17,7 +17,7 @@ def generate_launch_description():
                 executable='parameter_bridge',
                 arguments=[
                     '/lidar@sensor_msgs/msg/LaserScan@gz.msgs.LaserScan',
-                    '/cmd_vel@geometry_msgs/msg/Twist@gz.msgs.Twist',
+                    '/cmd_vel@geometry_msgs/msg/Twist]gz.msgs.Twist',
                     '/imu@sensor_msgs/msg/Imu[gz.msgs.IMU',
                 ],
                 output='screen',

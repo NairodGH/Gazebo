@@ -10,17 +10,9 @@
             "problemMatcher": ["$gcc"]
         },
         {
-            "label": "launch gz sim",
+            "label": "launch gz sim and node",
             "type": "shell",
-            "command": "gz sim ${workspaceFolder}/src/avoid_wall/worlds/building_robot.sdf",
-            "group": "test",
-            "presentation": { "reveal": "always", "panel": "shared", "focus": false },
-            "problemMatcher": []
-        },
-        {
-            "label": "run gz node",
-            "type": "shell",
-            "command": "sleep 3 && find ${workspaceFolder} -name lidar_node_gz | head -1 | xargs",
+            "command": "gz sim ${workspaceFolder}/src/avoid_wall/worlds/building_robot.sdf & sleep 3 && ${workspaceFolder}/src/avoid_wall/build/lidar_node_gz",
             "group": "test",
             "presentation": { "reveal": "always", "panel": "shared", "focus": true },
             "problemMatcher": []
@@ -51,7 +43,7 @@
         {
             "label": "build and launch (gz)",
             "dependsOrder": "sequence",
-            "dependsOn": ["cmake build gz", "launch gz sim", "run gz node"],
+            "dependsOn": ["cmake build gz", "launch gz sim and node"],
             "group": "test",
             "problemMatcher": []
         }
