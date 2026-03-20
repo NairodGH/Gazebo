@@ -81,6 +81,7 @@
             </link>
         </model>
         <model name="vehicle_blue" canonical_link="chassis">
+            <pose>-28 0 0 0 0 0</pose>
             <link name="chassis">
                 <!-- position the chassis so the model origin sits roughly at the car's geometric
                 center, and lift it a bit to make room for the wheels underneath -->
@@ -388,54 +389,11 @@
             </joint>
         </model>
 
-        <!-- obstacle wall -->
-        <model name="wall">
-            <static>true</static>
-            <pose>5 0 0 0 0 0</pose> <!-- relative to world -->
-            <link name="box">
-                <visual name="visual">
-                    <geometry>
-                        <box>
-                            <size>0.5 10.0 2.0</size>
-                        </box>
-                    </geometry>
-                    <material>
-                        <ambient>0.0 0.0 1.0 1</ambient>
-                        <diffuse>0.0 0.0 1.0 1</diffuse>
-                        <specular>0.0 0.0 1.0 1</specular>
-                    </material>
-                </visual>
-                <collision name="collision">
-                    <geometry>
-                        <box>
-                            <size>0.5 10.0 2.0</size>
-                        </box>
-                    </geometry>
-                </collision>
-                <sensor name="sensor_contact" type="contact">
-                    <contact>
-                        <collision>collision</collision>
-                    </contact>
-                </sensor>
-            </link>
-            <!-- enables contact/collision detection sensing on that specific link -->
-            <plugin filename="gz-sim-contact-system"
-                name="gz::sim::systems::Contact">
-            </plugin>
-            <!-- watches whether vehicle_blue is touching the wall -> publishes a boolean to a topic under the wall namespace -->
-            <plugin filename="gz-sim-touchplugin-system"
-                name="gz::sim::systems::TouchPlugin">
-                <target>vehicle_blue</target>
-                <namespace>wall</namespace>
-                <time>0.001</time> <!-- minimum continuous contact duration in seconds before the TouchPlugin fires and publishes true -->
-                <enabled>true</enabled>
-            </plugin>
-        </model>
-
-        <!-- actor = animated model, skin is the skeleton (scale 1 for base size), animation is how it moves (interpolate_x makes it more
-        realistic/smooth), script is the trajectory (type must be the same as animation's name) it'll take at given waypoints (starting
-        automatically and looping with no delay), tension controls how closely the trajectory will stick to them (0 = catmull-rom curve, may
-        overshoot/1 = sticks to the waypoints, rough/inbetween = realistic but here it's a square walk so not noticeable), fuel is gazebo's assets hosting -->
+        <!-- pedestrians, actor = animated model, skin is the skeleton (scale 1 for base size), animation is how it moves
+        (interpolate_xmakes it more realistic/smooth), script is the trajectory (type must be the same as animation's name) it'll take at given
+        waypoints (starting automatically and looping with no delay), tension controls how closely the trajectory will stick to them (0 =
+        catmull-rom curve, may  overshoot/1 = sticks to the waypoints, rough/inbetween = realistic but here it's a square walk so not noticeable),
+        fuel is gazebo's assets hosting -->
         <actor name="actor_walking">
             <skin>
                 <filename>https://fuel.gazebosim.org/1.0/Mingfei/models/actor/tip/files/meshes/walk.dae</filename>
@@ -449,45 +407,465 @@
                 <loop>true</loop>
                 <delay_start>0.000000</delay_start>
                 <auto_start>true</auto_start>
-                <trajectory id="0" type="walk" tension="0.5">
+                <!-- walks east along north sidewalk (y=3.5, 0.5m from block face), then crosses south to y=-3.5, walks west back, crosses
+                north again -->
+                <trajectory id="0" type="walk" tension="0.6">
                     <waypoint>
                         <time>0</time>
-                        <pose>0 0 1.0 0 0 0</pose>
+                        <pose>-23 3.5 1.0 0 0 0</pose>
                     </waypoint>
                     <waypoint>
-                        <time>2</time>
-                        <pose>2.0 0 1.0 0 0 0</pose>
+                        <time>9</time>
+                        <pose>-5 3.5 1.0 0 0 0</pose>
                     </waypoint>
                     <waypoint>
-                        <time>2.5</time>
-                        <pose>2 0 1.0 0 0 1.57</pose>
+                        <time>9.5</time>
+                        <pose>-5 3.5 1.0 0 0 -1.5707</pose>
                     </waypoint>
                     <waypoint>
-                        <time>4</time>
-                        <pose>2 2 1.0 0 0 1.57</pose>
+                        <time>13</time>
+                        <pose>-5 -3.5 1.0 0 0 -1.5707</pose>
                     </waypoint>
                     <waypoint>
-                        <time>4.5</time>
-                        <pose>2 2 1.0 0 0 3.142</pose>
+                        <time>13.5</time>
+                        <pose>-5 -3.5 1.0 0 0 3.1416</pose>
                     </waypoint>
                     <waypoint>
-                        <time>6</time>
-                        <pose>0 2 1 0 0 3.142</pose>
+                        <time>22.5</time>
+                        <pose>-23 -3.5 1.0 0 0 3.1416</pose>
                     </waypoint>
                     <waypoint>
-                        <time>6.5</time>
-                        <pose>0 2 1 0 0 -1.57</pose>
+                        <time>23</time>
+                        <pose>-23 -3.5 1.0 0 0 1.5707</pose>
                     </waypoint>
                     <waypoint>
-                        <time>8</time>
-                        <pose>0 0 1.0 0 0 -1.57</pose>
+                        <time>26.5</time>
+                        <pose>-23 3.5 1.0 0 0 1.5707</pose>
                     </waypoint>
                     <waypoint>
-                        <time>8.5</time>
-                        <pose>0 0 1.0 0 0 0</pose>
+                        <time>27</time>
+                        <pose>-23 3.5 1.0 0 0 0</pose>
                     </waypoint>
                 </trajectory>
             </script>
         </actor>
+        <actor name="actor_north">
+            <skin>
+                <filename>https://fuel.gazebosim.org/1.0/Mingfei/models/actor/tip/files/meshes/walk.dae</filename>
+                <scale>1.0</scale>
+            </skin>
+            <animation name="walk">
+                <filename>https://fuel.gazebosim.org/1.0/Mingfei/models/actor/tip/files/meshes/walk.dae</filename>
+                <interpolate_x>true</interpolate_x>
+            </animation>
+            <script>
+                <loop>true</loop>
+                <delay_start>2.0</delay_start>
+                <auto_start>true</auto_start>
+                <trajectory id="0" type="walk" tension="0.6">
+                    <waypoint>
+                        <time>0</time>
+                        <pose> 3.5 5 1.0 0 0 -1.5707</pose>
+                    </waypoint>
+                    <waypoint>
+                        <time>9</time>
+                        <pose> 3.5 23 1.0 0 0 -1.5707</pose>
+                    </waypoint>
+                    <waypoint>
+                        <time>9.5</time>
+                        <pose> 3.5 23 1.0 0 0 3.1416</pose>
+                    </waypoint>
+                    <waypoint>
+                        <time>13</time>
+                        <pose>-3.5 23 1.0 0 0 3.1416</pose>
+                    </waypoint>
+                    <waypoint>
+                        <time>13.5</time>
+                        <pose>-3.5 23 1.0 0 0 1.5707</pose>
+                    </waypoint>
+                    <waypoint>
+                        <time>22.5</time>
+                        <pose>-3.5 5 1.0 0 0 1.5707</pose>
+                    </waypoint>
+                    <waypoint>
+                        <time>23</time>
+                        <pose>-3.5 5 1.0 0 0 0</pose>
+                    </waypoint>
+                    <waypoint>
+                        <time>26.5</time>
+                        <pose> 3.5 5 1.0 0 0 0</pose>
+                    </waypoint>
+                    <waypoint>
+                        <time>27</time>
+                        <pose> 3.5 5 1.0 0 0 -1.5707</pose>
+                    </waypoint>
+                </trajectory>
+            </script>
+        </actor>
+        <actor name="actor_east">
+            <skin>
+                <filename>https://fuel.gazebosim.org/1.0/Mingfei/models/actor/tip/files/meshes/walk.dae</filename>
+                <scale>1.0</scale>
+            </skin>
+            <animation name="walk">
+                <filename>https://fuel.gazebosim.org/1.0/Mingfei/models/actor/tip/files/meshes/walk.dae</filename>
+                <interpolate_x>true</interpolate_x>
+            </animation>
+            <script>
+                <loop>true</loop>
+                <delay_start>4.0</delay_start>
+                <auto_start>true</auto_start>
+                <trajectory id="0" type="walk" tension="0.6">
+                    <waypoint>
+                        <time>0</time>
+                        <pose>-23 -3.5 1.0 0 0 0</pose>
+                    </waypoint>
+                    <waypoint>
+                        <time>11.5</time>
+                        <pose> 23 -3.5 1.0 0 0 0</pose>
+                    </waypoint>
+                    <waypoint>
+                        <time>12</time>
+                        <pose> 23 -3.5 1.0 0 0 -1.5707</pose>
+                    </waypoint>
+                    <waypoint>
+                        <time>15.5</time>
+                        <pose> 23 3.5 1.0 0 0 -1.5707</pose>
+                    </waypoint>
+                    <waypoint>
+                        <time>16</time>
+                        <pose> 23 3.5 1.0 0 0 3.1416</pose>
+                    </waypoint>
+                    <waypoint>
+                        <time>27.5</time>
+                        <pose>-23 3.5 1.0 0 0 3.1416</pose>
+                    </waypoint>
+                    <waypoint>
+                        <time>28</time>
+                        <pose>-23 3.5 1.0 0 0 1.5707</pose>
+                    </waypoint>
+                    <waypoint>
+                        <time>31.5</time>
+                        <pose>-23 -3.5 1.0 0 0 1.5707</pose>
+                    </waypoint>
+                    <waypoint>
+                        <time>32</time>
+                        <pose>-23 -3.5 1.0 0 0 0</pose>
+                    </waypoint>
+                </trajectory>
+            </script>
+        </actor>
+        <!-- pedestrians collisions, gz-sim-actor-collisions-system unavailable in this build 
+        so each actor gets a static invisible box at the midpoint of its patrol path so lidar detects them -->
+        <model name="actor_walking_collision">
+            <static>true</static>
+            <pose>-14 3.5 0.9 0 0 0</pose>
+            <link name="link">
+                <visual name="visual">
+                    <geometry>
+                        <box>
+                            <size>0.5 0.5 1.8</size>
+                        </box>
+                    </geometry>
+                    <material>
+                        <ambient>0 0 0 0</ambient>
+                        <diffuse>0 0 0 0</diffuse>
+                        <specular>0 0 0 0</specular>
+                    </material>
+                </visual>
+                <collision name="collision">
+                    <geometry>
+                        <box>
+                            <size>0.5 0.5 1.8</size>
+                        </box>
+                    </geometry>
+                </collision>
+            </link>
+        </model>
+        <model name="actor_north_collision">
+            <static>true</static>
+            <pose>3.5 14 0.9 0 0 0</pose>
+            <link name="link">
+                <visual name="visual">
+                    <geometry>
+                        <box>
+                            <size>0.5 0.5 1.8</size>
+                        </box>
+                    </geometry>
+                    <material>
+                        <ambient>0 0 0 0</ambient>
+                        <diffuse>0 0 0 0</diffuse>
+                        <specular>0 0 0 0</specular>
+                    </material>
+                </visual>
+                <collision name="collision">
+                    <geometry>
+                        <box>
+                            <size>0.5 0.5 1.8</size>
+                        </box>
+                    </geometry>
+                </collision>
+            </link>
+        </model>
+        <model name="actor_east_collision">
+            <static>true</static>
+            <pose>0 -3.5 0.9 0 0 0</pose>
+            <link name="link">
+                <visual name="visual">
+                    <geometry>
+                        <box>
+                            <size>0.5 0.5 1.8</size>
+                        </box>
+                    </geometry>
+                    <material>
+                        <ambient>0 0 0 0</ambient>
+                        <diffuse>0 0 0 0</diffuse>
+                        <specular>0 0 0 0</specular>
+                    </material>
+                </visual>
+                <collision name="collision">
+                    <geometry>
+                        <box>
+                            <size>0.5 0.5 1.8</size>
+                        </box>
+                    </geometry>
+                </collision>
+            </link>
+        </model>
+
+        <!-- city layout, 8m roads, 20x20m blocks, 66x66m total world -->
+
+        <!-- border walls -->
+        <model name="border_north">
+            <static>true</static>
+            <pose>0 32.5 2 0 0 0</pose>
+            <link name="link">
+                <visual name="visual">
+                    <geometry>
+                        <box>
+                            <size>66 1 4</size>
+                        </box>
+                    </geometry>
+                    <material>
+                        <ambient>0.0 0.0 1.0 1</ambient>
+                        <diffuse>0.0 0.0 1.0 1</diffuse>
+                        <specular>0.0 0.0 1.0 1</specular>
+                    </material>
+                </visual>
+                <collision name="collision">
+                    <geometry>
+                        <box>
+                            <size>66 1 4</size>
+                        </box>
+                    </geometry>
+                </collision>
+            </link>
+        </model>
+        <model name="border_south">
+            <static>true</static>
+            <pose>0 -32.5 2 0 0 0</pose>
+            <link name="link">
+                <visual name="visual">
+                    <geometry>
+                        <box>
+                            <size>66 1 4</size>
+                        </box>
+                    </geometry>
+                    <material>
+                        <ambient>0.0 0.0 1.0 1</ambient>
+                        <diffuse>0.0 0.0 1.0 1</diffuse>
+                        <specular>0.0 0.0 1.0 1</specular>
+                    </material>
+                </visual>
+                <collision name="collision">
+                    <geometry>
+                        <box>
+                            <size>66 1 4</size>
+                        </box>
+                    </geometry>
+                </collision>
+            </link>
+        </model>
+        <model name="border_west">
+            <static>true</static>
+            <pose>-32.5 0 2 0 0 0</pose>
+            <link name="link">
+                <visual name="visual">
+                    <geometry>
+                        <box>
+                            <size>1 66 4</size>
+                        </box>
+                    </geometry>
+                    <material>
+                        <ambient>0.0 0.0 1.0 1</ambient>
+                        <diffuse>0.0 0.0 1.0 1</diffuse>
+                        <specular>0.0 0.0 1.0 1</specular>
+                    </material>
+                </visual>
+                <collision name="collision">
+                    <geometry>
+                        <box>
+                            <size>1 66 4</size>
+                        </box>
+                    </geometry>
+                </collision>
+            </link>
+        </model>
+        <model name="border_east">
+            <static>true</static>
+            <pose>32.5 0 2 0 0 0</pose>
+            <link name="link">
+                <visual name="visual">
+                    <geometry>
+                        <box>
+                            <size>1 66 4</size>
+                        </box>
+                    </geometry>
+                    <material>
+                        <ambient>0.0 0.0 1.0 1</ambient>
+                        <diffuse>0.0 0.0 1.0 1</diffuse>
+                        <specular>0.0 0.0 1.0 1</specular>
+                    </material>
+                </visual>
+                <collision name="collision">
+                    <geometry>
+                        <box>
+                            <size>1 66 4</size>
+                        </box>
+                    </geometry>
+                </collision>
+            </link>
+        </model>
+
+        <!-- city block (20x20x4, center at z=2 so base sits on ground) ── -->
+        <model name="block_nw">
+            <static>true</static>
+            <pose>-14 14 2 0 0 0</pose>
+            <link name="link">
+                <visual name="visual">
+                    <geometry>
+                        <box>
+                            <size>20 20 4</size>
+                        </box>
+                    </geometry>
+                    <material>
+                        <ambient>0.0 0.0 1.0 1</ambient>
+                        <diffuse>0.0 0.0 1.0 1</diffuse>
+                        <specular>0.0 0.0 1.0 1</specular>
+                    </material>
+                </visual>
+                <collision name="collision">
+                    <geometry>
+                        <box>
+                            <size>20 20 4</size>
+                        </box>
+                    </geometry>
+                </collision>
+            </link>
+        </model>
+        <model name="block_ne">
+            <static>true</static>
+            <pose>14 14 2 0 0 0</pose>
+            <link name="link">
+                <visual name="visual">
+                    <geometry>
+                        <box>
+                            <size>20 20 4</size>
+                        </box>
+                    </geometry>
+                    <material>
+                        <ambient>0.0 0.0 1.0 1</ambient>
+                        <diffuse>0.0 0.0 1.0 1</diffuse>
+                        <specular>0.0 0.0 1.0 1</specular>
+                    </material>
+                </visual>
+                <collision name="collision">
+                    <geometry>
+                        <box>
+                            <size>20 20 4</size>
+                        </box>
+                    </geometry>
+                </collision>
+            </link>
+        </model>
+        <model name="block_sw">
+            <static>true</static>
+            <pose>-14 -14 2 0 0 0</pose>
+            <link name="link">
+                <visual name="visual">
+                    <geometry>
+                        <box>
+                            <size>20 20 4</size>
+                        </box>
+                    </geometry>
+                    <material>
+                        <ambient>0.0 0.0 1.0 1</ambient>
+                        <diffuse>0.0 0.0 1.0 1</diffuse>
+                        <specular>0.0 0.0 1.0 1</specular>
+                    </material>
+                </visual>
+                <collision name="collision">
+                    <geometry>
+                        <box>
+                            <size>20 20 4</size>
+                        </box>
+                    </geometry>
+                </collision>
+            </link>
+        </model>
+        <model name="block_se">
+            <static>true</static>
+            <pose>14 -14 2 0 0 0</pose>
+            <link name="link">
+                <visual name="visual">
+                    <geometry>
+                        <box>
+                            <size>20 20 4</size>
+                        </box>
+                    </geometry>
+                    <material>
+                        <ambient>0.0 0.0 1.0 1</ambient>
+                        <diffuse>0.0 0.0 1.0 1</diffuse>
+                        <specular>0.0 0.0 1.0 1</specular>
+                    </material>
+                </visual>
+                <collision name="collision">
+                    <geometry>
+                        <box>
+                            <size>20 20 4</size>
+                        </box>
+                    </geometry>
+                </collision>
+            </link>
+        </model>
+
+        <!-- roundabout -->
+        <model name="roundabout_island">
+            <static>true</static>
+            <pose>0 0 0 0 0 0</pose>
+            <link name="link">
+                <visual name="visual">
+                    <geometry>
+                        <cylinder>
+                            <radius>3.0</radius>
+                            <length>0.3</length>
+                        </cylinder>
+                    </geometry>
+                    <material>
+                        <ambient>0.4 0.4 0.4 1</ambient>
+                        <diffuse>0.4 0.4 0.4 1</diffuse>
+                        <specular>0.1 0.1 0.1 1</specular>
+                    </material>
+                </visual>
+                <collision name="collision">
+                    <geometry>
+                        <cylinder>
+                            <radius>3.0</radius>
+                            <length>0.3</length>
+                        </cylinder>
+                    </geometry>
+                </collision>
+            </link>
+        </model>
     </world>
 </sdf>
